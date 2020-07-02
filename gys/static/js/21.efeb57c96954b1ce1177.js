@@ -1,0 +1,2 @@
+webpackJsonp([21],{UCcd:function(t,e){},ZiHd:function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var r={render:function(){var t=this.$createElement;return(this._self._c||t)("div",{staticClass:"wrap"},[this._v("\n  123\n")])},staticRenderFns:[]};var a=n("VU/8")({data:function(){return{}},mounted:function(){},methods:{}},r,!1,function(t){n("UCcd")},"data-v-78116916",null);e.default=a.exports}});
+//# sourceMappingURL=21.efeb57c96954b1ce1177.js.map

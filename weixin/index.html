@@ -1,0 +1,39 @@
+<!DOCTYPE html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,user-scalable=no,initial-scale=1,maximum-scale=1,minimum-scale=1"><script type=text/javascript src=./static/js/flexible.js></script><link rel=stylesheet href=./static/css/main.css><script type=text/javascript src=./static/js/jquery.min.js></script><script src=./static/js/iscroll-probe.min.js></script><title>供应商平台</title><style>/* 解决滑动弹出框，穿透底部 */
+    #app {
+      height: 100%;
+    }
+    body,
+    html {
+      -webkit-text-size-adjust: 100% !important;
+      -moz-text-size-adjust: 100% !important;
+      -ms-text-size-adjust: 100% !important;
+      text-size-adjust: 100% !important;
+    }
+
+    /* html{ font-size: 41px !important; } */</style><link href=/gys/weixin/static/css/app.07fbe28e53032e4b572054f14d7b6153.css rel=stylesheet></head><body><div id=app></div><script type=text/javascript>// document.documentElement.style.fontSize = '45px'
+    let width = document.documentElement.clientWidth
+    let height = document.documentElement.clientHeight
+    if (width > height) {
+      // alert('横屏')
+      setTimeout(function () {
+        document.documentElement.style.fontSize = '45px';
+      }, 500)
+    }
+    let that = document.documentElement
+    console.log(that)
+    window.addEventListener("orientationchange", function (document) {
+      // alert('0')
+      console.log(that)
+      document.dpr = '2'
+      setTimeout(function () {
+        that.style.fontSize = '45px'
+        console.log(that)
+      }, 500)
+    }, false);
+
+    // document.documentElement.style.fontSize = document.documentElement.clientWidth / 10 + 'px';
+    // wx.miniProgram.navigateTo({url: '/path/to/page'})
+      // 初始化vConsole
+      // window.vConsole = new window.VConsole();
+      // console.info('欢迎使用 vConsole。vConsole 是一个由微信公众平台前端团队研发的 Web 前端开发者面板，可用于展示 console 日志，方便开发、调试。');
+      // eruda.init();</script><script type=text/javascript src=/gys/weixin/static/js/manifest.364eaa2e8f2e4425d3ea.js></script><script type=text/javascript src=/gys/weixin/static/js/vendor.7e1c37045cca84fff40a.js></script><script type=text/javascript src=/gys/weixin/static/js/app.ab138d51d856342e3f19.js></script></body></html>

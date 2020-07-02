@@ -1,0 +1,743 @@
+<template>
+  <div class="wrap" id="wrap" style="padding-top: 2rem;">
+    <search @click.native="show = true" style="position: fixed;width: 100%;background: #f5f5f5;height: 1.2rem;top:0;"></search>
+    <div v-transfer-dom>
+      <popup v-model="show" @on-hide="log('hide')" @on-show="log('show')" position="top" id="rece-search">
+        <rece-search @close="close" ref='search'></rece-search>
+      </popup>
+    </div>
+    <!-- <group> -->
+    <!-- <datetime v-model="startDate" @on-change="change" :show.sync="visibility" style="display: none"></datetime>
+    <datetime v-model="endDate" @on-change="change" :show.sync="visibility2" style="display: none"></datetime>-->
+    <!-- </group> -->
+    <div class="funcList">
+      <ul>
+        <li @click="toDetail">生成送货单</li>
+        <li @click='toList'>送货单列表</li>
+        <!-- <li>查看退货</li> -->
+        <!-- <li>送货单详情</li> -->
+      </ul>
+    </div>
+    <div v-for="(item, index1) in deliveryList2" :key="index1" :style="index1===deliveryList2.length-1 ? 'margin-bottom: 60px': ''" class='delivery'>
+      <div class="item-top">
+        <div class="item">
+          <div class="item-left">物<span class="spaces2"></span>料：{{item.SATNR}}-{{item.MAKTX_YB}}</div>
+          <div class="item-right" v-if="item.EINDT_QR">确认交期：{{item.EINDT_QR}}</div>
+        </div>
+        <div class="item" style="margin-top: 8px">
+          <div class="item-left" v-if="item.VBELN">指<span class="spaces2"></span>令： {{item.VBELN}}</div>
+          <div class="item-right" v-if="item.ZZXTNO">型<span class="spaces2"></span>体：{{item.ZZXTNO}}</div>
+        </div>
+        <div class="item" style="margin-top: 8px">
+          <div class="item-left">厂<span class="spaces2"></span>区： {{item.ZQY}}</div>
+          <div class="item-right" v-if="item.EBELN">采购订单号：{{item.EBELN}}</div>
+        </div>
+        <div class="item" style="margin-top: 8px">
+          <div class="item-left">工<span class="spaces2"></span>厂：{{item.WERKS}}-{{item.NAME1_W}}-{{item.ISNOCHECK==='X'?'免检':'非免检'}}</div>
+        </div> 
+        <div class="Remarks">
+          <div class="item-left">
+            送货量： <input type="number" style="width:60%" v-model="item.PUTSUM" v-on:keyup="watchPUTSUM(index1)" >
+          </div>
+          <div class="item-right">
+           <span style="color: red;">*</span>件数：<input v-model="item.ZREMARK"  type="number" style="width:50%" v-on:keyup="watchRemark(index1)" >
+          </div>
+        </div>
+      </div>
+      <div class="data-table">
+        <div class="t_r">
+          <div class='table-data'>
+            <div class='selectwrap'>
+              <div class='select-box' @click="allSelect(index1)">
+                <div class="select" v-if="!item.isAll"></div>
+                  <!-- <div class="selected" v-else></div> -->
+                  <icon
+                    type="success"
+                    v-else
+                    style="color: #aa0000;font-size: 24px;margin: 0 auto"
+                  ></icon>
+              </div>
+              <div class='select-box' v-for="(item1, index) in item.ZCGSLTZD_ITEM" :key='index' v-if="index != item.ZCGSLTZD_ITEM.length-1">
+                  <icon
+                    @click.native="vueTouch( row, index, index1)"
+                    type="success"
+                    style="color:#aa0000;font-size:24px;"
+                    v-if="item1.status"
+                  ></icon>
+                  <div @click="vueTouch( row, index, index1)" class="select" v-else></div>
+                </div>
+            </div>
+            <div class='new-table'>
+              <div class='table-head' style="width: 800px">
+                <div v-for="(item, key) in tableHead" :key="key" @click="allSelect(index1)" :style="key===0 ?'width: 60px':''">{{item}}</div>
+              </div>
+              <div class='table-body' style="width: 800px">
+                <div v-for="(item1, index) in item.ZCGSLTZD_ITEM" :key='index' class='tableRow'>
+                  <div v-tap="(e)=>vueTouch(e, index, index1, 1)" style="width: 60px;">{{item1.SIZE1}}</div>
+                  <div v-tap="(e)=>vueTouch(e, index, index1, 1)" style="width: 100px;">{{item1.MENGE}}</div>
+                  <div v-tap="(e)=>vueTouch(e, index, index1, 1)" style="width: 100px;">{{item1.YK_NUM}}</div>
+                  <div v-tap="(e)=>vueTouch(e, index, index1, 1)" style="width: 100px;">{{item1.WK_NUM}}</div>
+                  <div style="width: 100px;">{{item1.NO_EINME}}</div>
+                  <div style="width: 100px;">
+                    <input
+                      type="number"
+                      style="width: 40px;background: white;"
+                      v-on:keyup="watchValue(index, index1)"
+                      id="blurInput"
+                      class="tr-input"
+                      v-model="item1.ZDELIQTY"
+                      :disabled="index === item.ZCGSLTZD_ITEM.length-1"
+                    >
+                  </div>
+                  <div style="width: 100px;line-height:15px;word-break:break-all;overflow:scroll;-webkit-overflow-scrolling:touch;">{{item1.ZXT}}</div>
+                  <div style="width: 60px;line-height:15px;">{{item1.ZLGORT}}{{item1.LGOBE}}</div>
+                  <div style="width: 140px;line-height:15px;word-break:break-all;overflow:scroll;-webkit-overflow-scrolling:touch;">{{item1.ZREMARK}}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="btm-item">
+      <div class="fixedItem">
+        <div @click='getSearch("01")' :class='I_ZTYPE === "01" ? "btn-selected": ""'>代办事项</div>
+        <div @click='getSearch("02")' :class='I_ZTYPE === "02" ? "btn-selected": ""'>已办事项</div>
+        <div @click='getSearch("0")' :class='I_ZTYPE === "0" ? "btn-selected": ""'>全部</div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import $ from "jquery";
+import Search from "@/components/search.vue";
+import receSearch from "./search.vue";
+import { Datetime, Group, Icon, Popup, TransferDom, XInput } from "vux";
+import { mapState } from "vuex";
+import { parse } from 'path';
+export default {
+  data() {
+    return {
+      I_ZTYPE: '01',
+      row: { target: { cellIndex: 1 } },
+      aa: "",
+      show: false,
+      isAll: false,
+      startDate: "",
+      endDate: "",
+      visibility: false,
+      visibility2: false,
+      widths: 60,
+      widths2: 60,
+      tableHead: ["尺码", "数量", "已送货数量", "欠数", '不合格数量', "本次送货数量", "分配型体", "库位", "备注"],
+      firstChoose: "",
+      deliveryList2: [],
+      liIndex: "", // 当前点击的是某条数据的数组下标
+      index: ""
+    };
+  },
+  directives: {
+    TransferDom
+  },
+  computed: {
+    ...mapState({
+      deliveryList: state => state.user.delivery
+    })
+  },
+  components: {Datetime,Group,Icon,Search,receSearch,Popup,XInput},
+  mounted() {    
+    this.widths = $(window).width() / 5;
+  },
+  watch: {
+    deliveryList(val) {
+      // this.deliveryList2 = val
+      this.deliveryList2 = JSON.parse(JSON.stringify(val));
+      for (let i = 0; i < this.deliveryList2.length; i++) {
+        this.$set(this.deliveryList2[i], "ZREMARK", "");
+        this.$set(this.deliveryList2[i], "isAll", false);
+        var MENGE = 0;
+        var YK_NUM = 0;
+        var WK_NUM = 0;
+        var ZDELIQTY = 0
+        var NO_EINME = 0
+        for (let j = 0; j < this.deliveryList2[i].ZCGSLTZD_ITEM.length; j++) {
+          this.$set(this.deliveryList2[i].ZCGSLTZD_ITEM[j], "status", false);
+          this.$set(this.deliveryList2[i].ZCGSLTZD_ITEM[j], "ZDELIQTY", this.deliveryList2[i].ZCGSLTZD_ITEM[j].WK_NUM);          
+          MENGE += parseFloat(this.deliveryList2[i].ZCGSLTZD_ITEM[j].MENGE);//总数量
+          YK_NUM += parseFloat(this.deliveryList2[i].ZCGSLTZD_ITEM[j].YK_NUM);//已送数量
+          WK_NUM += parseFloat(this.deliveryList2[i].ZCGSLTZD_ITEM[j].WK_NUM);//欠数量
+          ZDELIQTY += parseFloat(this.deliveryList2[i].ZCGSLTZD_ITEM[j].ZDELIQTY)//
+          NO_EINME += parseFloat(this.deliveryList2[i].ZCGSLTZD_ITEM[j].NO_EINME)//不合格数量
+        }
+        this.deliveryList2[i].ZCGSLTZD_ITEM.push({
+          SIZE1: "合计",
+          MENGE:  parseFloat(MENGE).toFixed(3),
+          YK_NUM: parseFloat(YK_NUM).toFixed(3),
+          WK_NUM: parseFloat(WK_NUM).toFixed(3),
+          ZDELIQTY: parseFloat(ZDELIQTY).toFixed(3),
+          NO_EINME: parseFloat(NO_EINME).toFixed(3)
+        });
+        this.$set(this.deliveryList2[i], "PUTSUM", parseFloat(WK_NUM).toFixed(3)); //输入送货量
+      }
+    }
+    // 'deliveryList2': {
+    //   handler(newName, oldName) {
+    //     console.log(newName[this.index][this.liIndex])
+    //   },
+    //   // 代表在wacth里声明了firstName这个方法之后立即先去执行handler方法
+    //   immediate: true
+    // }
+  },
+  methods: {
+    // 调用子组件的 搜索方法
+    getSearch(value) {
+      // I_ZTYPE = 
+      this.I_ZTYPE = value
+      this.$refs.search.getList(value)
+    },
+    toList() {
+      this.$router.push({path: '/deliveryList'})
+    },
+    //点击 全选 状态 处理
+    allSelect(index1) {
+      this.$set(this.deliveryList2[index1],"isAll",!this.deliveryList2[index1].isAll);      
+      for (let j = 0; j < this.deliveryList2[index1].ZCGSLTZD_ITEM.length; j++) {
+        if (this.deliveryList2[index1].isAll) {
+          if (!this.firstChoose && this.firstChoose !== 0) {
+            // 保存 第一个选中的 用于与后面选中的进行比较 是否满足 同一交期 同一厂区
+            this.firstChoose = index1;
+          }
+           if (this.deliveryList2[index1].ZQY === this.deliveryList2[this.firstChoose].ZQY && this.deliveryList2[index1].WERKS === this.deliveryList2[this.firstChoose].WERKS) {
+            if(parseFloat(this.deliveryList2[index1].ZCGSLTZD_ITEM[j].ZDELIQTY) > 0) //送货数量为0不选中
+              this.$set(this.deliveryList2[index1].ZCGSLTZD_ITEM[j], "status", true);
+           }
+           else{
+             this.$vux.toast.text("选择有误：不同厂区不同工厂不能合并开单");
+           }
+        } else {
+          this.$set(this.deliveryList2[index1].ZCGSLTZD_ITEM[j], "status", false);
+        }
+      }
+      //清除初始化 同一交期 同一厂区
+      let isExitFirstChoose = false;
+      this.deliveryList2.forEach((item, index) => {
+        item.ZCGSLTZD_ITEM.forEach((item1, index1) => {
+          if (item1.status){
+            isExitFirstChoose = true;
+          }
+        })
+      });
+      if(!isExitFirstChoose){
+        this.firstChoose = "";
+      }
+    },
+    // 监听
+    watchRemark(liIndex) {
+      if (isNaN(parseInt(this.deliveryList2[liIndex].ZREMARK))){
+        this.$vux.toast.text("件数必须为数值");
+        return;
+      }
+      if (parseInt(this.deliveryList2[liIndex].ZREMARK) <= 0) {
+        this.$vux.toast.text("件数不得少于等于0件");
+        return;
+      }
+    },
+    // 监听输入送货量
+    watchPUTSUM(liIndex) {
+      var PUTSUM =  0;
+      if(this.deliveryList2[liIndex].PUTSUM !== ''){
+        PUTSUM =  parseFloat(this.deliveryList2[liIndex].PUTSUM);
+      }
+      console.log(PUTSUM);
+      var IndSUM = 0;
+      for (let j = 0; j < this.deliveryList2[liIndex].ZCGSLTZD_ITEM.length - 1; j++) {
+        IndSUM = IndSUM + parseFloat(this.deliveryList2[liIndex].ZCGSLTZD_ITEM[j].WK_NUM);
+      }
+      console.log(IndSUM);
+      //console.log(PUTSUM.toFixed(3) + "-----------" + IndSUM.toFixed(3) ); 
+      if(parseFloat(PUTSUM.toFixed(3)) > parseFloat(IndSUM.toFixed(3))){
+        //console.log(PUTSUM.toFixed(3) + "-----------" + IndSUM.toFixed(3) ); 
+        this.$vux.toast.text("输入送货量不得大于欠数合计数量" + IndSUM.toFixed(3));
+        this.$set(this.deliveryList2[liIndex], "PUTSUM", IndSUM.toFixed(3));
+        for (let j = 0; j < this.deliveryList2[liIndex].ZCGSLTZD_ITEM.length - 1; j++) {
+          this.deliveryList2[liIndex].ZCGSLTZD_ITEM[j].ZDELIQTY = this.deliveryList2[liIndex].ZCGSLTZD_ITEM[j].WK_NUM;
+        }
+        this.deliveryList2[liIndex].ZCGSLTZD_ITEM[this.deliveryList2[liIndex].ZCGSLTZD_ITEM.length - 1].ZDELIQTY = PUTSUM.toFixed(3);//最后一行合计
+        return;
+      }
+      
+      if (PUTSUM < 0 ) {
+        //this.$set(this.deliveryList2[liIndex], "PUTSUM", IndSUM.toFixed(3));
+        this.$vux.toast.text("输入送货量不得少于等于0");
+      }
+      else{
+        //console.log(this.deliveryList2[liIndex].ZCGSLTZD_ITEM);
+        var flag = false;
+        for (let j = 0; j < this.deliveryList2[liIndex].ZCGSLTZD_ITEM.length - 1; j++) {
+          if(!flag){
+            if(PUTSUM >= parseFloat(this.deliveryList2[liIndex].ZCGSLTZD_ITEM[j].WK_NUM)){
+              this.deliveryList2[liIndex].ZCGSLTZD_ITEM[j].ZDELIQTY = this.deliveryList2[liIndex].ZCGSLTZD_ITEM[j].WK_NUM;
+              PUTSUM = PUTSUM - parseFloat(this.deliveryList2[liIndex].ZCGSLTZD_ITEM[j].WK_NUM);
+            }
+            else{
+              this.deliveryList2[liIndex].ZCGSLTZD_ITEM[j].ZDELIQTY = PUTSUM.toFixed(3);
+              flag = true;
+              continue;
+            }
+          }
+          if(flag){
+            this.deliveryList2[liIndex].ZCGSLTZD_ITEM[j].ZDELIQTY = 0;
+            //重置选择
+            this.$set(this.deliveryList2[liIndex].ZCGSLTZD_ITEM[j], "status", false);
+          }
+        }
+        this.deliveryList2[liIndex].ZCGSLTZD_ITEM[this.deliveryList2[liIndex].ZCGSLTZD_ITEM.length - 1].ZDELIQTY = parseFloat(this.deliveryList2[liIndex].PUTSUM).toFixed(3);//最后一行合计
+      }
+    },
+    // 计算当前输入的送货数量是否超过欠数
+    watchValue(index, liIndex) {
+      this.liIndex = liIndex;
+      this.index = index;
+      
+      let val = 0;
+      if(this.deliveryList2[liIndex].ZCGSLTZD_ITEM[index].ZDELIQTY !== ''){
+        val = parseFloat(this.deliveryList2[liIndex].ZCGSLTZD_ITEM[index].ZDELIQTY);//输入的送货数
+      }
+      let qval = parseFloat(this.deliveryList2[liIndex].ZCGSLTZD_ITEM[index].WK_NUM);//欠数
+
+      if (val <= 0) {
+        this.$vux.toast.text("输入送货量不得少于等于0");
+        this.$set(this.deliveryList2[liIndex].ZCGSLTZD_ITEM[index],"status",false);
+      }else if (val > qval) {
+        // 填写的送货数量大于 欠数
+        this.$vux.toast.text("送货数量超出");
+        this.deliveryList2[liIndex].ZCGSLTZD_ITEM[index].ZDELIQTY = qval.toFixed(3);
+        this.$set(this.deliveryList2[liIndex].ZCGSLTZD_ITEM[index],"status",false);
+      }
+      this.total(); // 计算本次送货数量合计
+    },
+    total() {
+      for (let i = 0; i < this.deliveryList2.length; i++) {
+        let ZDELIQTY = 0;
+        let len = this.deliveryList2[i].ZCGSLTZD_ITEM.length;
+        for (let j = 0;j < this.deliveryList2[i].ZCGSLTZD_ITEM.length - 1;j++) {
+          // 因为不包括合计部分的本次送货数量 因此要 -1
+          let num = !this.deliveryList2[i].ZCGSLTZD_ITEM[j].ZDELIQTY? 0: this.deliveryList2[i].ZCGSLTZD_ITEM[j].ZDELIQTY;
+          ZDELIQTY += parseFloat(num);
+        }
+        this.$set(this.deliveryList2[i].ZCGSLTZD_ITEM[len - 1],"ZDELIQTY",ZDELIQTY.toFixed(3));
+        this.deliveryList2[i].PUTSUM = ZDELIQTY.toFixed(3);
+      }
+    },
+    // 跳转 生成送货单页面
+    toDetail() {
+      this.$store.commit("SET_CHOOSEITEM", []);
+      let arr = [];
+      let idx = 0;
+      let errorIdx = 0;
+      this.deliveryList2.forEach((item, index) => {
+        idx = 0;
+        item.ZCGSLTZD_ITEM.forEach((item1, index1) => {
+          //console.log(item1);
+          if (item1.status && item1.SIZE1 !== "合计" && item1.ZDELIQTY > 0) {
+            if(item.ZREMARK === '' || item.ZREMARK === undefined){
+              this.$vux.toast.text("必须输入件数");
+              errorIdx = 1;
+              forEach.break;
+            }
+            if(parseInt(item.ZREMARK) <= 0){
+              this.$vux.toast.text("输入件数不能小于等于0");
+              errorIdx = 2;
+              forEach.break;
+            }
+            var numReg = /^[0-9]+$/
+            var numRe = new RegExp(numReg)
+            if (!numRe.test(item.ZREMARK)) {
+              this.$vux.toast.text("输入整数，不能带小数点");
+              errorIdx = 2;
+              forEach.break;
+            }
+            //状态为true 除了 合计行
+            item1.MAKTX_YB = item.MAKTX_YB;
+            item1.ZQY = item.ZQY;
+            if(idx === 0){
+               item1.ZREMARK = item.ZREMARK;
+            }
+            else{
+              item1.ZREMARK = "0";
+              //item.WERKS = "1001";
+            }
+            item1.LIFNR = item.LIFNR;
+            item1.BUKRS = item.BUKRS;
+            item1.WERKS = item.WERKS;
+            item1.ZZXTNO = item.ZZXTNO;
+            item1.VBELN = item.VBELN;
+            arr.push(item1);
+            idx++;
+          }
+        });
+        if(errorIdx > 0){
+          forEach.break;
+        }
+      });
+      if(errorIdx === 1){
+        this.$vux.toast.text("必须输入件数");
+         return;
+      }
+      if(errorIdx === 2){
+        this.$vux.toast.text("输入件数不能小于0");
+         return;
+      }
+      if (!arr.length) {
+        this.$vux.toast.text("请选择送货单");
+        return;
+      }
+      console.log(arr);
+      this.$store.commit("SET_CHOOSEITEM", arr);
+      this.$router.push({ path: "/delivery" });
+    },
+    close() {
+      this.show = false;
+    },
+    log() {},
+    // 点击表格事件
+    vueTouch(e, index, liIndex, value) {
+      if (index === this.deliveryList2[liIndex].ZCGSLTZD_ITEM.length-1)return
+        let input = document.getElementById("blurInput");
+        input.blur();
+      if (!this.firstChoose && this.firstChoose !== 0) {
+        // 保存 第一个选中的 用于与后面选中的进行比较 是否满足 同一交期 同一厂区
+        this.firstChoose = liIndex;
+      }
+      if (e.target.cellIndex < 4 || e.target.tagName === "DIV") {
+        //代表 点击了 尺码 数量 已收货数量 欠数
+        if (!this.deliveryList2[liIndex].ZCGSLTZD_ITEM[index].status) {
+          // 如果本身状态是false 说明他即将要变成选中的状态  因此要进行判断 是否满足 同一交期 同一厂区
+          if (this.deliveryList2[liIndex].ZQY === this.deliveryList2[this.firstChoose].ZQY && this.deliveryList2[liIndex].WERKS === this.deliveryList2[this.firstChoose].WERKS) {
+            let ZDELIQTY =  parseFloat(this.deliveryList2[liIndex].ZCGSLTZD_ITEM[index].ZDELIQTY);
+            if (ZDELIQTY == 0) {
+              this.$vux.toast.text('请填写本次送货数量');
+              return
+            }
+            if (ZDELIQTY > parseFloat(this.deliveryList2[liIndex].ZCGSLTZD_ITEM[index].WK_NUM)) { 
+              // 只有 填写正确 的送货数量才可 选中
+              this.$vux.toast.text("本次送货数量超出");
+              return;
+            } else {
+              this.$set(this.deliveryList2[liIndex].ZCGSLTZD_ITEM[index],"status",!this.deliveryList2[liIndex].ZCGSLTZD_ITEM[index].status);
+            }
+          } else {
+            this.$vux.toast.text("选择有误：不同厂区不同工厂不能合并开单");
+          }
+        } else {
+          this.$set(this.deliveryList2[liIndex].ZCGSLTZD_ITEM[index],"status",!this.deliveryList2[liIndex].ZCGSLTZD_ITEM[index].status);
+        }
+      }
+      if (e.target.tagName === "I") {
+        // 代表点击了 选择框
+        // this.$router.push({ path: "/receivinfo" });
+      }
+      //清除初始化 同一交期 同一厂区
+      //清除初始化 同一交期 同一厂区
+      let isExitFirstChoose = false;
+      this.deliveryList2.forEach((item, index) => {
+        item.ZCGSLTZD_ITEM.forEach((item1, index1) => {
+          if (item1.status){
+            isExitFirstChoose = true;
+          }
+        })
+      });
+      if(!isExitFirstChoose){
+        this.firstChoose = "";
+      }
+    },
+    toInfo(e) {
+      console.log(e);
+      // this.$router.push({ path: "/warehousInfo" });
+    },
+    change() {},
+    init() {
+      var win = $(window),
+        scrollAreaEl = $(".t_r_content"),
+        leftFreezeEl = $(".t_l_freeze"),
+        leftTableEl = leftFreezeEl.find("table"),
+        rightTableEl = $(".t_r_t table");
+      //动态计算容器最大高度
+      function adjustHeight() {
+        var winHeight = win.height(),
+          tableHeight = 10 * 40;
+        // leftFreezeEl.height(tableHeight);
+        // scrollAreaEl.height(tableHeight);
+      }
+      adjustHeight();
+      win.on("resize", adjustHeight);
+      //设置iscroll
+      var myScroll = new IScroll(".t_r_content", {
+        scrollX: true,
+        scrollY: false,
+        probeType: 3
+      });
+      //阻止默认滚动
+      scrollAreaEl.on("touchmove mousewheel", function(e) {
+        e.preventDefault();
+      });
+      //固定上左表头的滚动
+      myScroll.on("scroll", updatePosition);
+      myScroll.on("scrollEnd", updatePosition);
+      function updatePosition() {
+        var a = this.y;
+        var b = this.x;
+        leftTableEl.css(
+          "transform",
+          "translate(0px, " + a + "px) translateZ(0px)"
+        );
+        rightTableEl.css(
+          "transform",
+          "translate(" + b + "px, 0px) translateZ(0px)"
+        );
+      }
+    }
+  }
+};
+</script>
+
+<style lang="less" scoped>
+@import "~@/assets/less/main.less";
+// @import "../../../main.css";
+#rece-search{
+  z-index: 501;
+}
+.vux-popup-dialog{
+  z-index: 999;
+}
+.table-data{
+  padding-right: 45px;
+  .selectwrap{
+    position: absolute;
+    right: 0;
+    .select-box{
+      // z-index: 10;
+      background: white;
+      width: 45px;
+      height: @rem*80;
+      .v-flex;
+    }
+  }
+  .new-table{
+    overflow-x: scroll;
+    // position: relative;
+    -webkit-overflow-scrolling:touch;
+    .table-head{
+      display: flex;
+      height: @rem*80;
+      font-size: @rem*24;
+      color: #aa0000;
+      >div{
+        font-weight: bolder;
+        width: 100px;
+        text-align: center;
+        line-height: @rem*80;
+      }
+    }
+    .table-body{
+      .tr-input{
+        height: 30px;
+        width: 60px !important;
+      }
+      .tableRow{
+        display: flex;
+        text-align: center;
+        color: #333;
+        height: @rem*80;
+        line-height: @rem*80;
+      }
+    }
+  }
+}
+.delivery{
+  margin-top: 15px;
+}
+.Remarks {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  color: #666;
+  input {
+    border: 1px solid #d8d6d6;
+    height: @rem*50;
+    border-radius: 5px;
+    padding-left: @rem*20;
+  }
+}
+a {
+  color: white;
+}
+.spaces {
+  display: inline-block;
+  width: 3em;
+}
+.spaces2 {
+  display: inline-block;
+  width: 2em;
+}
+input[type="number"] {
+  -webkit-appearance: none;
+}
+textarea {
+  -webkit-appearance: none;
+}
+.tr-input {
+  border: 1px solid #f5f5f5;
+  border-radius: 4px;
+  text-align: center;
+}
+.btm-item {
+  z-index: 2000;
+  position: fixed;
+  bottom: 0;
+  background: white;
+  height: @rem*100;
+  width: 100%;
+  justify-content: center;
+  display: flex;
+  align-items: center;
+  .fixedItem {
+    width: 96%;
+    height: @rem*64;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+    border: 1px solid #aa0000;
+    border-radius: 4px;
+    div {
+      height: 100%;
+      flex: 1;
+      border-right: 1px solid #aa0000;
+      text-align: center;
+      line-height: @rem*64;
+      color: #aa0000;
+    }
+    div:nth-child(3) {
+      border-right: 0;
+    }
+  }
+}
+.btn-selected {
+  background: #aa0000;
+  color: white !important;
+}
+.select,
+.selected {
+  width: @rem*48;
+  height: @rem*48;
+  border-radius: 100%;
+  border: 1px solid #c9c9c9;
+  margin: 0 auto;
+}
+.selected {
+  background: red;
+}
+.item-top {
+  padding: @rem*20;
+  background: white;
+  border-bottom: 1px solid #f5f5f5;
+  .item {
+    display: flex;
+    justify-content: space-between;
+    color: #666;
+    .item-left,
+    .item-right {
+      flex: 1;
+    }
+  }
+}
+.data-table {
+  background: white;
+  font-size: @rem*22;
+  // margin-bottom: @rem*100;
+}
+.funcList {
+  position: fixed;
+  top: 1.2rem;
+  width: 100%;
+  background: white;
+  padding: @rem*20;
+  z-index: 9;
+  ul {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    li {
+      flex: 1;
+      .bisColor(#d93309, #aa0000);
+      margin-right: @rem*10;
+      color: white;
+      height: @rem*64;
+      text-align: center;
+      line-height: @rem*64;
+      border-radius: 4px;
+    }
+    li:nth-child(4) {
+      margin-right: 0;
+    }
+  }
+}
+.searchBox {
+  z-index: 9;
+  background: white;
+  box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.1);
+  padding: @rem*20;
+  .title {
+    font-size: @rem*28;
+    height: @rem*60;
+    line-height: @rem*60;
+    color: #666;
+  }
+  .date {
+    display: flex;
+    align-items: center;
+    span {
+      width: @rem*50;
+      text-align: center;
+      font-size: @rem*28;
+    }
+    .choose {
+      width: @rem*312;
+      height: @rem*72;
+      border-radius: 4px;
+      border: solid 1px #e6e6e6;
+      input {
+        text-align: center;
+        border-radius: 4px;
+        height: 100%;
+        width: 100%;
+        border: none;
+      }
+    }
+  }
+  .number {
+    height: @rem*72;
+    border: solid 1px #e6e6e6;
+    border-radius: 4px;
+    input {
+      padding-left: @rem*20;
+      border-radius: 4px;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+  }
+  .searchButton {
+    margin-top: @rem*25;
+    text-align: center;
+    font-size: @rem*36;
+    color: white;
+    line-height: @rem*80;
+    height: @rem*80;
+    width: 100%;
+    border-radius: 4px;
+    .bisColor(#d93309, #aa0000);
+  }
+}
+</style>
