@@ -1,0 +1,22 @@
+1、供应商
+安装依赖：npm install 
+运行调试：npm run dev
+打包生成：npm run build
+
+2、企业微信
+安装依赖：npm install 
+运行调试：npm run dev
+打包生成：npm run build
+
+3、入职履历
+安装依赖：npm install 
+运行调试：npm run serve
+打包生成：npm run build
+
+http://192.168.101.234:8080/#/login?openId=oNESquNw9JNod_8pnix9f
+http://192.168.101.234:8080/#/login?openId=oNESquOc2Qi8UToEkaS
+http://192.168.101.234:8080/#/login?openId=oNESquCgB2lkJlX24D5vVRs
+
+
+
+
