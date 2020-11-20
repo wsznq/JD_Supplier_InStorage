@@ -157,27 +157,26 @@ export default {
       }
     },
     async confirm() {
-      console.log(this.info);
       if(this.info.length <= 0){
         this.$vux.toast.text("无数据");
-        return;
+        return false;
       }
       //console.log(this.ZNUMPAGE);
       if(this.ZNUMPAGE === '' || this.ZNUMPAGE === undefined){
         this.$vux.toast.text("必须输入总件数");
-        return;
+        return false;
       }
       if (isNaN(parseInt(this.ZNUMPAGE))){
         this.$vux.toast.text("总件数必须为数值");
-        return;
+        return false;
       }
       if(parseInt(this.ZNUMPAGE) <= 0){
         this.$vux.toast.text("输入总件数不能小于0");
-        return;
+        return false;
       }
       if(this.loadingbut === true){
         this.$vux.toast.text("提交中...");
-        return;
+        return false;
       }
       this.form.MES_HeadsString = [];
       let headobj = {
@@ -216,7 +215,7 @@ export default {
       let arrWERKS = [];
       let errorIdx = 0;
       this.info.forEach((item, index) => {
-        if (index === this.info.length-1) return
+        if (index === this.info.length-1) return false;
         for (let obj in item) {
           //console.log(obj)
           if (obj === 'ZZXTNO') {
@@ -274,11 +273,11 @@ export default {
      
       if(errorIdx === 1){
         this.$vux.toast.text("存在不同公司代码");
-        return;
+        return false;
       }
       if(errorIdx === 2){
         this.$vux.toast.text("存在不同工厂");
-        return;
+        return false;
       }
       // this.form.MES_HeadsString[0].LIFNR = this.info[0].LIFNR;
       // this.form.MES_ItemsString[0].EBELN = this.info[0].EBELN;
@@ -289,7 +288,7 @@ export default {
       // this.form.MES_ItemsString[0].ZDELIQTY = this.info[0].ZDELIQTY;
       // this.form.MES_ItemsString[0].ZZGCXT = this.info[0].ZZXTNO;
       // this.form.MES_ItemsString[0].ZCOMMUNIT = this.info[0].MEINS;
-       console.log(this.form.MES_HeadsString)
+      // console.log(this.form.MES_HeadsString)
       this.form.MES_HeadsString.push(headobj);
       this.form.MES_HeadsString = JSON.stringify(this.form.MES_HeadsString);
       this.form.MES_ItemsString = JSON.stringify(this.form.MES_ItemsString);
@@ -298,16 +297,20 @@ export default {
         this.loadingbuttext = "提交中...";
 
         let res = await JDSendLetterOfAdvice(this.form);
-        //console.log(res);
-        this.$vux.toast.text(res);
+        
         this.$store.commit("SET_CHOOSEITEM", []);
         this.info = [];
         //接口返回后
-        this.loadingbut =  false;
-        this.loadingbuttext = "提交";
+        console.log(res);
 
-        this.$router.push({path: '/result' , query: { No: res.replace(/[^0-9]/ig,"")}})
-
+        let No = res.replace(/[^0-9]/ig,"");
+        if(this.ZNUMPAGE === '' || this.ZNUMPAGE === undefined){
+          this.loadingbut =  false;
+          this.loadingbuttext = "提交";
+        }
+        else{
+          this.$router.push({path: '/result' , query: { No: res.replace(/[^0-9]/ig,"")}});
+        }
       } catch (error) {
         console.log(error);
         this.loadingbut =  false;
